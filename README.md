@@ -16,7 +16,7 @@
 
 ## 下载与安装
 
-1. 下载 [`release/TOKERU-FUUKA-TO-SHIROUSAGI_Chinese_Patch.zip`](release/TOKERU-FUUKA-TO-SHIROUSAGI_Chinese_Patch.zip)。
+1. 下载补丁文件。
 2. 将压缩包内的全部文件解压到游戏目录，也就是 `data.xp3` 和游戏 EXE 所在的位置。
 3. 双击 `运行此文件启动游戏！.bat` 启动游戏。
 

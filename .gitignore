@@ -1,0 +1,54 @@
+# Original game and extracted assets
+data*.xp3
+*.xp3
+*.tlg
+*.pbd
+*.psb
+*.scn
+*.ogg
+*.wav
+*.wmv
+*.amv
+*.exe
+*.dll
+*.pdb
+*.sig
+*.dump.txt
+extracted/
+savedata/
+backups/
+outputs/
+patch_assets/
+
+# Downloaded third-party tools and OCR runtimes
+tools/FreeMote-*/
+tools/tjs2-decompiler/
+tools/Ulysses-FreeMoteToolkit-*.zip
+paddleocr_runtime/
+.paddlex/
+.cache/
+
+# Build output and caches
+build/
+bin/
+obj/
+.vs/
+.dotnet_cli/
+.nuget_packages/
+node_modules/
+__pycache__/
+*.py[cod]
+*.inspect.ndjson
+diagnostic_launch_status.txt
+
+# Local translation credentials and generated workbooks
+translator-config.json
+translate-config.json
+translation-cache.json
+*.translated.xlsx
+
+# Editor and OS files
+.DS_Store
+Thumbs.db
+*.user
+*.suo

@@ -1,0 +1,39 @@
+// Diagnostic startup used to extract UI sprite names and rectangles from PBD.
+Storages.setDefaultPath(System.exePath + "patch.xp3>");
+Plugins.linkZ("bres://./w65ckmri9p5xv3zt8ugfj6d4me/bootstrap");
+var originalFolders = [
+    "k2compat", "system", "sysscn", "video", "others", "rule", "sound", "bgm",
+    "fgimage", "bgimage", "scenario", "scn", "image", "voice", "face",
+    "init", "font", "sysse", "main", "evimage", "thum", "uipsd",
+    "motion", "motiondx", "emote", "emotedx", "bishamon", "glsl"
+];
+for (var folderIndex = 0; folderIndex < originalFolders.count; ++folderIndex) {
+    Storages.addAutoPath(System.exePath + "data.xp3>" + originalFolders[folderIndex] + "/");
+}
+Scripts.execStorage(System.exePath + "data.xp3>startup.tjs");
+
+var pbdFiles = [
+    "backlog.pbd", "dialog.pbd", "file.pbd", "file_load.pbd",
+    "file_quick.pbd", "file_save.pbd", "file_voice.pbd", "gesture_tips.pbd",
+    "gview.pbd", "message.pbd", "notify_qsave.pbd", "notify_snapshot.pbd",
+    "notify_vsave.pbd", "popup_quick.pbd", "popup_system.pbd",
+    "popup_volume.pbd", "select.pbd", "system0.pbd", "system1.pbd",
+    "system2.pbd", "system3.pbd", "system4.pbd", "system5.pbd",
+    "system5_pulldown.pbd", "system6.pbd", "system6_pulldown.pbd",
+    "title.pbd", "title_bg.pbd"
+];
+Debug.message("UIPBD_SCAN_BEGIN");
+for (var pbdIndex = 0; pbdIndex < pbdFiles.count; ++pbdIndex) {
+    var pbdName = pbdFiles[pbdIndex];
+    var pbdPath = System.exePath + "data.xp3>uipsd/" + pbdName;
+    try {
+        var pbdData = Scripts.loadDataPack(pbdPath);
+        Debug.message("UIPBD_FILE_BEGIN=" + pbdName);
+        Debug.message(getPrint(pbdData));
+        Debug.message("UIPBD_FILE_END=" + pbdName);
+        invalidate(pbdData);
+    } catch (error) {
+        Debug.message("UIPBD_FILE_ERROR=" + pbdName + ":" + error.message);
+    }
+}
+Debug.message("UIPBD_SCAN_END");

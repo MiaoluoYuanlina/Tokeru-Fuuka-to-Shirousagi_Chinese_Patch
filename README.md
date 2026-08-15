@@ -21,6 +21,10 @@
 
 发布包校验值见 [`release/SHA256SUMS.txt`](release/SHA256SUMS.txt)。
 
+也可以下载 [`game_patch-installer.zip`](release/game_patch-installer.zip)，解压后运行其中的 `game_patch.exe`。该安装器已经内置汉化补丁，会自动定位或使用当前游戏目录完成安装。
+
+表格翻译工具的可运行版本位于 [`release/translate_tool-windows.zip`](release/translate_tool-windows.zip)。解压后运行 `translate_tool.exe`，使用说明和示例配置已经包含在压缩包内；运行环境需要 .NET 8 Desktop Runtime。
+
 ## 翻译与打包
 
 - `localization/scenario_dialogue_zh_cn_from_excel.tsv`：已完成的剧情翻译表，可直接交给 `build_patch.bat`。

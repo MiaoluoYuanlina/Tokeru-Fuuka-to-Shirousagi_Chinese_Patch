@@ -1,0 +1,10 @@
+.vs/
+.dotnet_cli/
+.nuget/
+**/bin/
+**/obj/
+translation-cache.json
+*.translated.xlsx
+*.translated.xlsm
+*.translated.csv
+*.translated.tsv

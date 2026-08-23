@@ -1,0 +1,34 @@
+# IDE and build output
+**/.vs/
+**/bin/
+**/obj/
+**/__pycache__/
+*.user
+*.suo
+*.py[cod]
+
+# Local translation data and credentials
+translation-cache.json
+translator-config.json
+translate-config.json
+*.xlsx
+*.tsv.bak
+.env
+.env.*
+
+# Bundled/downloaded dependencies too large for the Git repository
+resource_tool/runtime/
+resource_tool/node_modules/
+resource_tool/core/FreeMote-*/**
+!resource_tool/core/FreeMote-*/FreeMote.LICENSE.txt
+
+# Generated installers and patch payloads
+*.exe
+*.dll
+*.pdb
+*.zip
+*.xp3
+
+# OS files
+Thumbs.db
+.DS_Store

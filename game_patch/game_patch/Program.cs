@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.IO.Compression;
+using System.Threading;
 namespace game_patch    
 {
     internal class Program
@@ -15,6 +16,7 @@ namespace game_patch
         static int game_int = 0;
         static void Main(string[] args)
         {
+            bool gameFoundInCurrentDirectory = false;
             game_int = Description_Get_Pid("とける風花とシロうさぎ　体験版");
             if (game_int == 0)
             {
@@ -23,9 +25,11 @@ namespace game_patch
 
             if (File.Exists($"{game_path}\\kazeshiro_demo.exe"))
             {
+                gameFoundInCurrentDirectory = true;
                 Console.WriteLine("已经定位到游戏位置:" + game_path);
             }else if (File.Exists($"{game_path}\\とける風花とシロうさぎ.exe"))
             {
+                gameFoundInCurrentDirectory = true;
                 Console.WriteLine("已经定位到游戏位置:" + game_path);
             }
 
@@ -36,13 +40,15 @@ namespace game_patch
                 PID_Kill(game_int);
                 Console.WriteLine("游戏路径为:" + game_path);
             }
-            else
+            else if (!gameFoundInCurrentDirectory)
             {
                 Console.WriteLine("未找到游戏路径，先提前启动游戏后在运行，或将本程序放在游戏目录下运行。");
                 Console.WriteLine("确保先提前运行游戏在运行补丁程序。");
                 Console.ReadKey();
                 return;
             }
+
+            StopPatchRelatedProcesses(game_path);
 
 
 
@@ -99,6 +105,12 @@ namespace game_patch
                     {
                         foreach (ZipArchiveEntry entry in archive.Entries)
                         {
+                            if (IsTransientPayloadEntry(entry.FullName))
+                            {
+                                Console.WriteLine("跳过临时备份：" + entry.FullName);
+                                continue;
+                            }
+
                             string filePath = Path.Combine(
                                 targetDirectory,
                                 entry.FullName
@@ -120,8 +132,7 @@ namespace game_patch
 
                             Console.WriteLine("写入：" + entry.FullName);
 
-                            // true = 存在同名文件时覆盖
-                            entry.ExtractToFile(filePath, true);
+                            ExtractEntryWithRetry(entry, filePath);
                         }
                     }
                 }
@@ -132,6 +143,89 @@ namespace game_patch
             {
                 Console.WriteLine("解压失败：" + ex.Message);
                 return false;
+            }
+        }
+
+        static bool IsTransientPayloadEntry(string entryName)
+        {
+            string fileName = Path.GetFileName(entryName);
+            return (fileName.StartsWith("patch.previous.", StringComparison.OrdinalIgnoreCase)
+                    && fileName.EndsWith(".bak", StringComparison.OrdinalIgnoreCase))
+                || (fileName.StartsWith("KazeshiroLauncher.before_", StringComparison.OrdinalIgnoreCase)
+                    && fileName.EndsWith(".exe", StringComparison.OrdinalIgnoreCase));
+        }
+
+        static void ExtractEntryWithRetry(ZipArchiveEntry entry, string filePath)
+        {
+            const int maximumAttempts = 6;
+            for (int attempt = 1; attempt <= maximumAttempts; attempt++)
+            {
+                try
+                {
+                    entry.ExtractToFile(filePath, true);
+                    return;
+                }
+                catch (IOException) when (attempt < maximumAttempts)
+                {
+                    Console.WriteLine("文件暂时被占用，正在重试（" + attempt + "/" + maximumAttempts + "）：" + entry.FullName);
+                    Thread.Sleep(700);
+                }
+                catch (UnauthorizedAccessException) when (attempt < maximumAttempts)
+                {
+                    Console.WriteLine("文件暂时无法写入，正在重试（" + attempt + "/" + maximumAttempts + "）：" + entry.FullName);
+                    Thread.Sleep(700);
+                }
+            }
+        }
+
+        static void StopPatchRelatedProcesses(string targetDirectory)
+        {
+            string normalizedTarget;
+            try
+            {
+                normalizedTarget = Path.GetFullPath(targetDirectory)
+                    .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
+                    + Path.DirectorySeparatorChar;
+            }
+            catch
+            {
+                return;
+            }
+
+            int currentProcessId = Process.GetCurrentProcess().Id;
+            foreach (Process process in Process.GetProcesses())
+            {
+                try
+                {
+                    if (process.Id == currentProcessId)
+                        continue;
+
+                    string executablePath = process.MainModule.FileName;
+                    if (string.IsNullOrEmpty(executablePath)
+                        || !executablePath.StartsWith(normalizedTarget, StringComparison.OrdinalIgnoreCase))
+                        continue;
+
+                    string processName = Path.GetFileNameWithoutExtension(executablePath);
+                    bool shouldStop = processName.IndexOf("KazeshiroLauncher", StringComparison.OrdinalIgnoreCase) >= 0
+                        || processName.StartsWith("KazeshiroLocaleRuntime", StringComparison.OrdinalIgnoreCase)
+                        || processName.Equals("kazeshiro_demo", StringComparison.OrdinalIgnoreCase)
+                        || processName.Equals("とける風花とシロうさぎ", StringComparison.OrdinalIgnoreCase);
+
+                    if (!shouldStop)
+                        continue;
+
+                    Console.WriteLine("正在关闭占用补丁文件的程序：" + processName + " (PID " + process.Id + ")");
+                    process.Kill();
+                    process.WaitForExit(5000);
+                }
+                catch
+                {
+                    // 无权限访问或进程已经退出时继续安装，具体文件仍会在写入阶段重试。
+                }
+                finally
+                {
+                    process.Dispose();
+                }
             }
         }
         static bool ZIP_Extract_Resource(string targetDirectory)
